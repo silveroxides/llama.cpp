@@ -7,14 +7,7 @@ On Mac and Linux, the homebrew package manager can be used via
 ```sh
 brew install llama.cpp
 ```
-The formula is automatically updated with new `llama.cpp` releases. More info: https://github.com/ggml-org/llama.cpp/discussions/7668
-
-## MacPorts
-
-```sh
-sudo port install llama.cpp
-```
-see also: https://ports.macports.org/port/llama.cpp/details/
+The formula is automatically updated with new `llama.cpp` releases. More info: https://github.com/ggerganov/llama.cpp/discussions/7668
 
 ## Nix
 

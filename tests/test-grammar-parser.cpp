@@ -3,9 +3,7 @@
 #endif
 
 #include "llama.h"
-
-// TODO: shold not include libllama sources
-#include "../src/llama-grammar.h"
+#include "llama-grammar.h"
 
 #include <cassert>
 

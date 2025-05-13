@@ -4,7 +4,9 @@
 #include <string>
 #include <vector>
 
-struct unicode_cpt_flags {
+// TODO: prefix all symbols with "llama_"
+
+struct codepoint_flags {
     enum {
         UNDEFINED       = 0x0001,
         NUMBER          = 0x0002,  // regex: \p{N}
@@ -33,7 +35,7 @@ struct unicode_cpt_flags {
     uint16_t is_nfd         : 1;
 
     // decode from uint16
-    inline unicode_cpt_flags(const uint16_t flags = 0) {
+    inline codepoint_flags(const uint16_t flags=0) {
         *reinterpret_cast<uint16_t*>(this) = flags;
     }
 
@@ -48,19 +50,18 @@ struct unicode_cpt_flags {
 
 size_t unicode_len_utf8(char src);
 
-std::string unicode_cpt_to_utf8  (uint32_t cpt);
-uint32_t    unicode_cpt_from_utf8(const std::string & utf8, size_t & offset);
-
+std::string unicode_cpt_to_utf8(uint32_t cp);
+uint32_t unicode_cpt_from_utf8(const std::string & utf8, size_t & offset);
 std::vector<uint32_t> unicode_cpts_from_utf8(const std::string & utf8);
 
 std::vector<uint32_t> unicode_cpts_normalize_nfd(const std::vector<uint32_t> & cpts);
 
-unicode_cpt_flags unicode_cpt_flags_from_cpt (uint32_t cpt);
-unicode_cpt_flags unicode_cpt_flags_from_utf8(const std::string & utf8);
+codepoint_flags unicode_cpt_flags(const uint32_t cp);
+codepoint_flags unicode_cpt_flags(const std::string & utf8);
 
 std::string unicode_byte_to_utf8(uint8_t byte);
-uint8_t     unicode_utf8_to_byte(const std::string & utf8);
+uint8_t unicode_utf8_to_byte(const std::string & utf8);
 
-uint32_t unicode_tolower(uint32_t cpt);
+uint32_t unicode_tolower(uint32_t cp);
 
 std::vector<std::string> unicode_regex_split(const std::string & text, const std::vector<std::string> & regex_exprs);

@@ -1,5 +1,4 @@
 #include "ggml.h"
-#include "gguf.h"
 
 #include <cstdlib>   /* abort() */
 #include <cstddef>

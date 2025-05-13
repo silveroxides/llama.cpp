@@ -10,9 +10,6 @@ from typing import Any, List, Optional, Set, Tuple, Union
 
 def _build_repetition(item_rule, min_items, max_items, separator_rule=None):
 
-    if max_items == 0:
-        return ""
-
     if min_items == 0 and max_items == 1:
         return f'{item_rule}?'
 
@@ -198,7 +195,7 @@ class BuiltinRule:
         self.deps = deps or []
 
 # Constraining spaces to prevent model "running away".
-SPACE_RULE = '| " " | "\\n"{1,2} [ \\t]{0,20}'
+SPACE_RULE = '| " " | "\\n" [ \\t]{0,20}'
 
 PRIMITIVE_RULES = {
     'boolean'      : BuiltinRule('("true" | "false") space', []),

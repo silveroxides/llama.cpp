@@ -1,13 +1,6 @@
 name: flake8 Lint
 
-on:
-  push:
-    branches:
-      - master
-    paths: ['.github/workflows/python-lint.yml', '**/*.py']
-  pull_request:
-    types: [opened, synchronize, reopened]
-    paths: ['.github/workflows/python-lint.yml', '**/*.py']
+on: [push, pull_request]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref && github.ref || github.run_id }}

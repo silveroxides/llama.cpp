@@ -22,7 +22,7 @@ int main(int argc, char ** argv){
     common_init();
 
     // max. number of additional tokens to draft if match is found
-    const int n_draft = params.speculative.n_max;
+    const int n_draft = params.n_draft;
 
     const bool dump_kv_cache = params.dump_kv_cache;
 
@@ -33,10 +33,8 @@ int main(int argc, char ** argv){
     // load the model
     common_init_result llama_init = common_init_from_params(params);
 
-    llama_model * model = llama_init.model.get();
-    llama_context * ctx = llama_init.context.get();
-
-    const llama_vocab * vocab = llama_model_get_vocab(model);
+    llama_model * model = llama_init.model;
+    llama_context * ctx = llama_init.context;
 
     // tokenize the prompt
     std::vector<llama_token> inp;
@@ -104,7 +102,7 @@ int main(int argc, char ** argv){
 
     bool has_eos = false;
 
-    struct common_sampler * smpl = common_sampler_init(model, params.sampling);
+    struct common_sampler * smpl = common_sampler_init(model, params.sparams);
 
     std::vector<llama_token> draft;
 
@@ -138,7 +136,7 @@ int main(int argc, char ** argv){
                 LOG("%s", token_str.c_str());
             }
 
-            if (llama_vocab_is_eog(vocab, id)) {
+            if (llama_token_is_eog(model, id)) {
                 has_eos = true;
             }
 
@@ -192,7 +190,7 @@ int main(int argc, char ** argv){
 
         // KV cache management
         // clean the cache of draft tokens that weren't accepted
-        llama_kv_self_seq_rm(ctx, 0, n_past, -1);
+        llama_kv_cache_seq_rm(ctx, 0, n_past, -1);
 
         common_batch_clear(batch_tgt);
         common_batch_add(batch_tgt, draft[0], n_past, { 0 }, true);
@@ -244,6 +242,9 @@ int main(int argc, char ** argv){
     common_sampler_free(smpl);
 
     llama_batch_free(batch_tgt);
+
+    llama_free(ctx);
+    llama_free_model(model);
 
     llama_backend_free();
 
