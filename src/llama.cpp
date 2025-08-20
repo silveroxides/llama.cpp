@@ -18874,6 +18874,8 @@ static void llama_model_quantize_internal(const std::string & fname_inp, const s
             quantize &= name.find("final_layer.") == std::string::npos;
             quantize &= name != "distilled_guidance_layer.out_proj.weight";
             quantize &= name != "distilled_guidance_layer.in_proj.weight";
+            quantize &= name != "nerf_image_embedder.embedder.0.weight";
+            quantize &= name != "nerf_final_layer.linear.weight";
         }
         if (model.arch == LLM_ARCH_SD1 || model.arch == LLM_ARCH_SDXL) {
             image_model = true;
