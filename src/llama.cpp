@@ -214,6 +214,8 @@ enum llm_arch {
     LLM_ARCH_HYVID,
     LLM_ARCH_WAN,
     LLM_ARCH_HIDREAM,
+    LLM_ARCH_COSMOS,
+    LLM_ARCH_LUMINA2,
     LLM_ARCH_UNKNOWN,
 };
 
@@ -276,6 +278,8 @@ static const std::map<llm_arch, const char *> LLM_ARCH_NAMES = {
     { LLM_ARCH_HYVID,           "hyvid"        },
     { LLM_ARCH_WAN,             "wan"          },
     { LLM_ARCH_HIDREAM,         "hidream"      },
+    { LLM_ARCH_COSMOS,          "cosmos"       },
+    { LLM_ARCH_LUMINA2,         "lumina2"      },
     { LLM_ARCH_UNKNOWN,         "(unknown)"    },
 };
 
@@ -1558,6 +1562,8 @@ static const std::map<llm_arch, std::map<llm_tensor, const char *>> LLM_TENSOR_N
     { LLM_ARCH_HYVID,   {}},
     { LLM_ARCH_WAN,     {}},
     { LLM_ARCH_HIDREAM, {}},
+    { LLM_ARCH_COSMOS,  {}},
+    { LLM_ARCH_LUMINA2, {}},
     {
         LLM_ARCH_UNKNOWN,
         {
@@ -5441,6 +5447,8 @@ static void llm_load_hparams(
         case LLM_ARCH_HYVID:
         case LLM_ARCH_WAN:
         case LLM_ARCH_HIDREAM:
+        case LLM_ARCH_COSMOS:
+        case LLM_ARCH_LUMINA2:
             model.ftype = ml.ftype;
             return;
         default:
@@ -18091,7 +18099,8 @@ static ggml_type img_tensor_get_type(quantize_state_internal & qs, ggml_type new
             (name.find(".to_v.weight") != std::string::npos) ||
             (name.find(".v.weight") != std::string::npos) ||
             (name.find(".attn.w1v.weight") != std::string::npos) ||
-            (name.find(".attn.w2v.weight") != std::string::npos)
+            (name.find(".attn.w2v.weight") != std::string::npos) ||
+            (name.find("_attn.v_proj.weight") != std::string::npos)
         ){
             if (ftype == LLAMA_FTYPE_MOSTLY_Q2_K) {
                 new_type = GGML_TYPE_Q3_K;
@@ -18111,7 +18120,8 @@ static ggml_type img_tensor_get_type(quantize_state_internal & qs, ggml_type new
             ++qs.i_attention_wv;
     } else if ( // Rules for fused qkv attention
             (name.find("attn_qkv.weight") != std::string::npos) ||
-            (name.find("attn.qkv.weight") != std::string::npos)
+            (name.find("attn.qkv.weight") != std::string::npos) ||
+            (name.find("attention.qkv.weight") != std::string::npos)
         ) {
             if (ftype == LLAMA_FTYPE_MOSTLY_Q3_K_M || ftype == LLAMA_FTYPE_MOSTLY_Q3_K_L) {
                 new_type = GGML_TYPE_Q4_K;
@@ -18126,7 +18136,10 @@ static ggml_type img_tensor_get_type(quantize_state_internal & qs, ggml_type new
             (name.find("ffn_down") != std::string::npos) ||
             ((name.find("experts.") != std::string::npos) && (name.find(".w2.weight") != std::string::npos)) ||
             (name.find(".ffn.2.weight") != std::string::npos) || // is this even the right way around?
-            (name.find(".ff.net.2.weight") != std::string::npos)
+            (name.find(".ff.net.2.weight") != std::string::npos) ||
+            (name.find(".mlp.layer2.weight") != std::string::npos) ||
+            (name.find(".adaln_modulation_mlp.2.weight") != std::string::npos) ||
+            (name.find(".feed_forward.w2.weight") != std::string::npos)
         ) {
             // TODO: add back `layer_info` with some model specific logic + logic further down
             if (ftype == LLAMA_FTYPE_MOSTLY_Q3_K_M) {
@@ -18946,6 +18959,24 @@ static void llama_model_quantize_internal(const std::string & fname_inp, const s
             quantize &= name.find("final_layer.") == std::string::npos;
             quantize &= name.find(".ff_i.gate.weight") == std::string::npos;
             quantize &= name.find("caption_projection.") == std::string::npos;
+        }
+        if (model.arch == LLM_ARCH_COSMOS) {
+            image_model = true;
+            quantize &= name.find("p_embedder.") == std::string::npos;
+            quantize &= name.find("t_embedder.") == std::string::npos;
+            quantize &= name.find("t_embedding_norm.") == std::string::npos;
+            quantize &= name.find("x_embedder.") == std::string::npos;
+            quantize &= name.find("pos_embedder.") == std::string::npos;
+            quantize &= name.find("final_layer.") == std::string::npos;
+        }
+        if (model.arch == LLM_ARCH_LUMINA2) {
+            image_model = true;
+            quantize &= name.find("t_embedder.") == std::string::npos;
+            quantize &= name.find("x_embedder.") == std::string::npos;
+            quantize &= name.find("final_layer.") == std::string::npos;
+            quantize &= name.find("cap_embedder.") == std::string::npos;
+            quantize &= name.find("context_refiner.") == std::string::npos;
+            quantize &= name.find("noise_refiner.") == std::string::npos;
         }
         // ignore 3D/4D tensors for image models as the code was never meant to handle these
         if (image_model) {
