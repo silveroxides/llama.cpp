@@ -18888,6 +18888,7 @@ static void llama_model_quantize_internal(const std::string & fname_inp, const s
             quantize &= name != "distilled_guidance_layer.out_proj.weight";
             quantize &= name != "distilled_guidance_layer.in_proj.weight";
             quantize &= name != "nerf_image_embedder.embedder.0.weight";
+            quantize &= name != "__x0__";
             quantize &= name != "img_in_patch.weight";
             quantize &= name != "nerf_final_layer.linear.weight";
             quantize &= name != "nerf_final_layer_conv.conv.weight";
